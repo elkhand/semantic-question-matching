@@ -9,16 +9,17 @@ from keras import backend as K
 import time
 import matplotlib.pyplot as plt
 
-def get_config(train_dataset_path,val_dataset_path=None, test_size=0.2, val_size=0.2, seed=7,is_debug_on=False):
+def get_config(train_dataset_path, test_size, val_size, seed=7,is_debug_on=False):
     conf = {}
     conf["train_dataset_path"] = train_dataset_path
-    conf["val_dataset_path"] = val_dataset_path
     conf['test_size'] = test_size
-    conf['val_size'] = test_size
-    conf["max_seq_len"] = 40
-    conf["embedding_dimension"] = 100
-    conf["batch_size"] = 5000
-    conf["nb_epochs"] = 40 #300
+    conf['val_size'] = val_size
+    conf["max_seq_len"] = 32 #40
+    conf["embedding_dimension"] = 300
+    conf["batch_size"] = 3096
+    conf["nb_epochs"] = 100 #300
+    conf["recurrent_dropout"] = 0.3
+    conf["dropout"] = 0.3
     # fix random seed for reproducibility
     conf['seed'] = seed
     conf['is_debug_on'] = is_debug_on
@@ -29,28 +30,19 @@ def get_config(train_dataset_path,val_dataset_path=None, test_size=0.2, val_size
 
 def create_train_test_split(config):
     dfTrain = pd.read_csv(config['train_dataset_path'], sep='\t', encoding='utf-8')
-    # print("dfTrain.head():\n",dfTrain.head(),"\n")
-    #dfTrain.columns = ['text', 'label']
-    df = dfTrain
-    
-    if config['val_dataset_path'] is not None:
-        dfVal = pd.read_csv(config['val_dataset_path'], sep='\t', encoding='utf-8')
-        #dfVal.columns = ['text', 'label']
-        # print("dfVal.head():\n",dfVal.head(),"\n")
-        df = pd.concat([dfTrain, dfVal])
-        df = df.reset_index()
-    
-    return create_train_test_split_from_df(df, config)
+    return create_train_test_split_from_df(dfTrain, config)
        
     
-def create_train_test_split_from_df(df, config):
+def create_train_test_split_from_df(df, config, isValSplit=False):
     # Shuffle dataset
     # df = shuffle(df)
     if config['is_debug_on']:
         print("\n","Label distribution: ",df.groupby('is_duplicate').is_duplicate.count())
+    
+    testOrValSplitRatio = config['val_size'] if isValSplit else config['test_size']
     train_x, val_x, train_y,  val_y = train_test_split(df[['id', 'qid1', 'qid2', 'question1', 'question2']],
                                                      df['is_duplicate'],
-                                                     test_size=config['val_size'],
+                                                     test_size=testOrValSplitRatio,
                                                      random_state=config['seed'],
                                                      stratify=df["is_duplicate"])
 
