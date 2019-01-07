@@ -26,6 +26,7 @@ def clean(input):
 Multiple models were tested:
 
 ### Shared Bi-LSTM model
+`Total params`: 1,436,161
 
 Model description:
 
@@ -45,7 +46,7 @@ Result on test dataset:
 ```
 
 ### 2 Shared Bi-LSTM model
-
+`Total params`: xxx
 Model description:
 
 <img src="models/model_shared_lstm.png" height="400" alt="Shared Bi-LSTM model"/>
@@ -65,7 +66,7 @@ Result on test dataset:
 
 
 ### 2 independent Bi-LSTM model
-
+`Total params`: xxx
 Model description:
 
 <img src="models/model_non_shared_lstm.png" height="400" alt="2 Independent Bi-LSTM model"/>
