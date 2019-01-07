@@ -254,6 +254,7 @@ def f1(y_true, y_pred):
     return 2*((precision*recall)/(precision+recall+ K.epsilon()))
 
 def clean(input):
+    # source: https://www.kaggle.com/moseli/clean-questions
     input = input.lower()
     return re.sub('[!@#.,/$%^&*\(\)\{\}\[\]-_\<\>?\'\";:~`]',' ',str(input))
 

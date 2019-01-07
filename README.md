@@ -3,6 +3,8 @@ Semantic Question Matching with Deep Learning Keras
 
 This is Keras implementation of [Semantic Question Matching with Deep Learning](https://engineering.quora.com/Semantic-Question-Matching-with-Deep-Learning)
 
+There was also [Kaggle competition](https://www.kaggle.com/c/quora-question-pairs/data).
+
 ## Dataset
 
 You can download data from: http://qim.ec.quoracdn.net/quora_duplicate_questions.tsv 
