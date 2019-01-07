@@ -1,21 +1,25 @@
 import pandas as pd
+import nltk
 from nltk import sent_tokenize, word_tokenize
 import numpy as np
 import os
 from pathlib import Path
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.utils import shuffle
+import keras
 from keras import backend as K
 import time
 import matplotlib.pyplot as plt
+import re
 
-def get_config(train_dataset_path, test_size, val_size, seed=7,is_debug_on=False):
+
+def get_config(train_dataset_path, test_size, val_size, seed=7, embedding_dimension=100, is_debug_on=False):
     conf = {}
     conf["train_dataset_path"] = train_dataset_path
     conf['test_size'] = test_size
     conf['val_size'] = val_size
     conf["max_seq_len"] = 32 #40
-    conf["embedding_dimension"] = 300
+    conf["embedding_dimension"] = embedding_dimension
     conf["batch_size"] = 3096
     conf["nb_epochs"] = 100 #300
     conf["recurrent_dropout"] = 0.3
@@ -30,6 +34,11 @@ def get_config(train_dataset_path, test_size, val_size, seed=7,is_debug_on=False
 
 def create_train_test_split(config):
     dfTrain = pd.read_csv(config['train_dataset_path'], sep='\t', encoding='utf-8')
+    
+    # Clean the questions
+    dfTrain['question1'] = dfTrain['question1'].apply(clean)
+    dfTrain['question2'] = dfTrain['question2'].apply(clean)
+
     return create_train_test_split_from_df(dfTrain, config)
        
     
@@ -40,7 +49,7 @@ def create_train_test_split_from_df(df, config, isValSplit=False):
         print("\n","Label distribution: ",df.groupby('is_duplicate').is_duplicate.count())
     
     testOrValSplitRatio = config['val_size'] if isValSplit else config['test_size']
-    train_x, val_x, train_y,  val_y = train_test_split(df[['id', 'qid1', 'qid2', 'question1', 'question2']],
+    train_x, val_x, train_y,  val_y = train_test_split(df[['question1', 'question2']], # 'id', 'qid1', 'qid2',
                                                      df['is_duplicate'],
                                                      test_size=testOrValSplitRatio,
                                                      random_state=config['seed'],
@@ -103,7 +112,7 @@ def get_sequence_embedding(words, w2v, config):
     if len(words) <= config['max_seq_len']:
         # Add padding
         x_seq = np.array([get_word_embedding(word, w2v, config) for word in words])
-        x_seq = np.lib.pad(x_seq, ((0,config['max_seq_len'] - x_seq.shape[0]),(0,0)), 'constant')
+        #x_seq = np.lib.pad(x_seq, ((0,config['max_seq_len'] - x_seq.shape[0]),(0,0)), 'constant')
     else:
         x_seq = []
         for i in range(config['max_seq_len']):
@@ -121,20 +130,24 @@ def load_dataset(df, w2v, config):
         q1 = row['question1']
         q2 = row['question2']
         label = row['is_duplicate']
-        q1_words = q1.split(" ")
+        q1_words = nltk.word_tokenize(q1)#q1.split(" ")
         q1_embedding = get_sequence_embedding(q1_words, w2v, config)
         q1_embeddings.append(q1_embedding)
         
-        q2_words = q1.split(" ")
+        q2_words = nltk.word_tokenize(q2)#q2.split(" ")
         q2_embedding = get_sequence_embedding(q2_words, w2v, config)
         q2_embeddings.append(q2_embedding)
         
         labels.append(label)
         #break
         
+    q1_embeddings = keras.preprocessing.sequence.pad_sequences(q1_embeddings, dtype='float32')
+    q2_embeddings = keras.preprocessing.sequence.pad_sequences(q2_embeddings, dtype='float32')
+
     df_q1_emb = np.array(q1_embeddings)
     df_q2_emb = np.array(q2_embeddings)
     df_label = np.array(labels)
+    
     return (df_q1_emb, df_q2_emb, df_label)
 
 def generate_model_name(filename, best_acc_val):
@@ -239,3 +252,7 @@ def f1(y_true, y_pred):
     precision = precision(y_true, y_pred)
     recall = recall(y_true, y_pred)
     return 2*((precision*recall)/(precision+recall+ K.epsilon()))
+
+def clean(string):
+    return re.sub('[!@#.,/$%^&*\(\)\{\}\[\]-_\<\>?\'\";:~`]',' ',str(string))
+
