@@ -168,8 +168,8 @@ def plot_model_accuracy(history, modelDir="", hasF1=False):
     
     if hasF1:
         val_f1_list = history.history['val_f1']
-        best_f1 =  max(val_f1_list)
-        print("best_f1", best_f1)
+        best_val_f1 =  max(val_f1_list)
+        print("best_val_f1", best_val_f1)
         print("best_train_f1", max(history.history['f1']))
     
     #  "Accuracy"
@@ -253,6 +253,7 @@ def f1(y_true, y_pred):
     recall = recall(y_true, y_pred)
     return 2*((precision*recall)/(precision+recall+ K.epsilon()))
 
-def clean(string):
-    return re.sub('[!@#.,/$%^&*\(\)\{\}\[\]-_\<\>?\'\";:~`]',' ',str(string))
+def clean(input):
+    input = input.lower()
+    return re.sub('[!@#.,/$%^&*\(\)\{\}\[\]-_\<\>?\'\";:~`]',' ',str(input))
 
