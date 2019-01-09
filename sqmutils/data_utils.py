@@ -255,6 +255,6 @@ def f1(y_true, y_pred):
 
 def clean(input):
     # source: https://www.kaggle.com/moseli/clean-questions
-    input = input.lower()
+    #input = input.lower()
     return re.sub('[!@#.,/$%^&*\(\)\{\}\[\]-_\<\>?\'\";:~`]',' ',str(input))
 
