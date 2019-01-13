@@ -25,14 +25,14 @@ def clean(input):
 ```
 
 ## Model
-Multiple models were tested:
+
 
 ### Shared Bi-LSTM model
 `Total params`: 1,436,161
 
 Model description:
 
-<img src="models/model_shared_lstm.png" height="400" alt="Shared Bi-LSTM model"/>
+<img src="models/model_architecture.png" height="400" alt="Shared Bi-LSTM model"/>
 
 
 Result on test dataset:
@@ -46,43 +46,3 @@ Result on test dataset:
     "recall": 0.8497477165107057
 }
 ```
-
-### 2 Shared Bi-LSTM model
-`Total params`: xxx
-Model description:
-
-<img src="models/model_shared_lstm.png" height="400" alt="Shared Bi-LSTM model"/>
-
-
-Result on test dataset:
-
-```
-{
-    "acc": 0.8654464506407112,
-    "f1": 0.8157053697442407,
-    "loss": 0.36335550133261446,
-    "precision": 0.7982342198966548,
-    "recall": 0.8497477165107057
-}
-```
-
-
-### 2 independent Bi-LSTM model
-`Total params`: xxx
-Model description:
-
-<img src="models/model_non_shared_lstm.png" height="400" alt="2 Independent Bi-LSTM model"/>
-
-
-Result on test dataset:
-
-```
-{
-    "acc": 0.8654464506407112,
-    "f1": 0.8157053697442407,
-    "loss": 0.36335550133261446,
-    "precision": 0.7982342198966548,
-    "recall": 0.8497477165107057
-}
-```
-

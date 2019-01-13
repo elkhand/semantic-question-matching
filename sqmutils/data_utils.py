@@ -11,6 +11,7 @@ from keras import backend as K
 import time
 import matplotlib.pyplot as plt
 import re
+import os
 
 
 def get_config(train_dataset_path, test_size, val_size, seed=7, embedding_dimension=100, is_debug_on=False):
@@ -120,7 +121,7 @@ def get_sequence_embedding(words, w2v, config):
         x_seq = np.array(x_seq)
     return x_seq    
 
-def load_dataset(df, w2v, config):
+def load_dataset(df, w2v, config, isTestDataset=False):
     q1_embeddings = []
     q2_embeddings = []
     second_questions = []
@@ -129,26 +130,32 @@ def load_dataset(df, w2v, config):
     for index, row in df.iterrows():
         q1 = row['question1']
         q2 = row['question2']
-        label = row['is_duplicate']
-        q1_words = nltk.word_tokenize(q1)#q1.split(" ")
-        q1_embedding = get_sequence_embedding(q1_words, w2v, config)
+        
+        try:
+            q1_words = nltk.word_tokenize(q1)
+            q1_embedding = get_sequence_embedding(q1_words, w2v, config)
+            q2_words = nltk.word_tokenize(q2)
+            q2_embedding = get_sequence_embedding(q2_words, w2v, config)
+        except:
+            print(index, "causing error: ' ",row," '")
+            continue
+        
+        if not isTestDataset:
+            label = row['is_duplicate']
+            labels.append(label)
+
         q1_embeddings.append(q1_embedding)
-        
-        q2_words = nltk.word_tokenize(q2)#q2.split(" ")
-        q2_embedding = get_sequence_embedding(q2_words, w2v, config)
         q2_embeddings.append(q2_embedding)
-        
-        labels.append(label)
-        #break
         
     q1_embeddings = keras.preprocessing.sequence.pad_sequences(q1_embeddings, dtype='float32')
     q2_embeddings = keras.preprocessing.sequence.pad_sequences(q2_embeddings, dtype='float32')
 
     df_q1_emb = np.array(q1_embeddings)
     df_q2_emb = np.array(q2_embeddings)
-    df_label = np.array(labels)
+    if not isTestDataset:
+        df_label = np.array(labels)
     
-    return (df_q1_emb, df_q2_emb, df_label)
+    return (df_q1_emb, df_q2_emb, df_label) if not isTestDataset else (df_q1_emb, df_q2_emb)
 
 def generate_model_name(filename, best_acc_val):
     timestamp = str(time.time()).split(".")[0]
@@ -193,6 +200,19 @@ def plot_model_accuracy(history, modelDir="", hasF1=False):
     plt.legend(['train', 'validation'], loc='upper left')
     plt.show()
     fig.savefig(modelDir + "/" + filename + ".png")  
+
+    if hasF1:
+        fig = plt.figure()
+        filename = generate_model_name(base_filename + "-f1", max(history.history['val_f1']))
+        plt.plot(history.history['f1'])
+        plt.plot(history.history['val_f1'])
+        plt.title('model F1')
+        plt.ylabel('F1')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'validation'], loc='upper left')
+        plt.show()
+        fig.savefig(modelDir + "/" + filename + ".png")  
+
 
 def precision(y_true, y_pred):
     """source: https://github.com/keras-team/keras/issues/5400"""
@@ -258,3 +278,6 @@ def clean(input):
     #input = input.lower()
     return re.sub('[!@#.,/$%^&*\(\)\{\}\[\]-_\<\>?\'\";:~`]',' ',str(input))
 
+def create_dir(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
