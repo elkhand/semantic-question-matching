@@ -121,7 +121,7 @@ def get_sequence_embedding(words, w2v, config):
         x_seq = np.array(x_seq)
     return x_seq    
 
-def load_dataset(df, w2v, config, isTestDataset=False):
+def load_dataset(df, w2v, config):
     q1_embeddings = []
     q2_embeddings = []
     second_questions = []
@@ -140,9 +140,8 @@ def load_dataset(df, w2v, config, isTestDataset=False):
             print(index, "causing error: ' ",row," '")
             continue
         
-        if not isTestDataset:
-            label = row['is_duplicate']
-            labels.append(label)
+        label = row['is_duplicate']
+        labels.append(label)
 
         q1_embeddings.append(q1_embedding)
         q2_embeddings.append(q2_embedding)
@@ -152,10 +151,32 @@ def load_dataset(df, w2v, config, isTestDataset=False):
 
     df_q1_emb = np.array(q1_embeddings)
     df_q2_emb = np.array(q2_embeddings)
-    if not isTestDataset:
-        df_label = np.array(labels)
+    df_label = np.array(labels)
     
-    return (df_q1_emb, df_q2_emb, df_label) if not isTestDataset else (df_q1_emb, df_q2_emb)
+    return (df_q1_emb, df_q2_emb, df_label)
+
+def load_dataset_single_row(row, w2v, config, row_index=None):
+    q1 = row['question1']
+    q2 = row['question2']
+    try:
+        q1_words = nltk.word_tokenize(q1)
+    except:
+        print(row_index, "q1 words tokenize exception", q1)
+        q1_words = [None]
+    q1_embedding = get_sequence_embedding(q1_words, w2v, config)
+    try:
+        q2_words = nltk.word_tokenize(q2)
+    except:
+        print(row_index, "q2 words tokenize exception", q2)
+        q2_words = [None]
+    q2_embedding = get_sequence_embedding(q2_words, w2v, config)
+    
+    q1_embedding = np.array(keras.preprocessing.sequence.pad_sequences([q1_embedding], maxlen=config['max_seq_len'], dtype='float32'))
+    q2_embedding = np.array(keras.preprocessing.sequence.pad_sequences([q2_embedding], maxlen=config['max_seq_len'], dtype='float32'))
+
+    return (q1_embedding, q2_embedding)
+
+
 
 def generate_model_name(filename, best_acc_val):
     timestamp = str(time.time()).split(".")[0]
