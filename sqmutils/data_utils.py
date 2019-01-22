@@ -14,7 +14,7 @@ import re
 import os
 
 
-def get_config(train_dataset_path, test_size, val_size, seed=7, embedding_dimension=100, is_debug_on=False):
+def get_config(train_dataset_path, test_size, val_size, seed=7, embedding_dimension=300, is_debug_on=False):
     conf = {}
     conf["train_dataset_path"] = train_dataset_path
     conf['test_size'] = test_size
@@ -121,10 +121,9 @@ def get_sequence_embedding(words, w2v, config):
         x_seq = np.array(x_seq)
     return x_seq    
 
-def load_dataset(df, w2v, config):
+def load_dataset(df, w2v, config, isTestDataset=False):
     q1_embeddings = []
     q2_embeddings = []
-    second_questions = []
     labels = []
     num_of_classes = 2
     for index, row in df.iterrows():
@@ -140,20 +139,22 @@ def load_dataset(df, w2v, config):
             print(index, "causing error: ' ",row," '")
             continue
         
-        label = row['is_duplicate']
-        labels.append(label)
+        if not isTestDataset:
+            label = row['is_duplicate']
+            labels.append(label)
 
         q1_embeddings.append(q1_embedding)
         q2_embeddings.append(q2_embedding)
         
-    q1_embeddings = keras.preprocessing.sequence.pad_sequences(q1_embeddings, dtype='float32')
-    q2_embeddings = keras.preprocessing.sequence.pad_sequences(q2_embeddings, dtype='float32')
+    q1_embeddings = keras.preprocessing.sequence.pad_sequences(q1_embeddings, maxlen=config['max_seq_len'], dtype='float32')
+    q2_embeddings = keras.preprocessing.sequence.pad_sequences(q2_embeddings, maxlen=config['max_seq_len'], dtype='float32')
 
     df_q1_emb = np.array(q1_embeddings)
     df_q2_emb = np.array(q2_embeddings)
-    df_label = np.array(labels)
+    if not isTestDataset:
+        df_label = np.array(labels)
     
-    return (df_q1_emb, df_q2_emb, df_label)
+    return (df_q1_emb, df_q2_emb, df_label) if not isTestDataset else (df_q1_emb, df_q2_emb)
 
 def load_dataset_single_row(row, w2v, config, row_index=None):
     q1 = row['question1']
