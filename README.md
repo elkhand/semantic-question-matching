@@ -30,7 +30,7 @@ def clean(input):
 
 Model architecture:
 
-<img src="models/model_architecture.png" height="400" alt="Shared Bi-LSTM model"/>
+<img src="models/model_architecture.png" height="700" width="700" alt="Shared Bi-LSTM model"/>
 
 
 ### Result on validation dataset:
