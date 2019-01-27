@@ -1,5 +1,5 @@
 # Semantic Question Matching
-Semantic Question Matching with Deep Learning Keras
+Semantic Question Matching with Deep Learning Keras - achieving 0.81 `F1 score`, and 0.86% `Accuracy` on `validation set`.
 
 This is Keras implementation of [Semantic Question Matching with Deep Learning](https://engineering.quora.com/Semantic-Question-Matching-with-Deep-Learning)
 
@@ -9,7 +9,7 @@ There was also [Kaggle competition](https://www.kaggle.com/c/quora-question-pair
 
 You can download data from: http://qim.fs.quoracdn.net/quora_duplicate_questions.tsv 
 Dataset info: https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs 
-
+Test data: https://www.kaggle.com/c/quora-question-pairs/download/test.csv 
 
 ## Word embedding
 300 dimensional [Fasttext word embeddings](https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.en.vec) are used.
@@ -33,35 +33,36 @@ Model architecture:
 <img src="models/model_architecture.png" height="400" alt="Shared Bi-LSTM model"/>
 
 
-### Result on test dataset:
+### Result on validation dataset:
 
 ```
 {
-    "acc": 0.8609943112287962,
-    "f1": 0.8099339832446966,
-    "loss": 0.40213754246089234,
-    "precision": 0.7910408705966826,
-    "recall": 0.8450007286515238
+    "acc": 0.8671778383126448,
+    "f1": 0.8139558653710002,
+    "loss": 0.3984556962085661,
+    "precision": 0.8089975262230763,
+    "recall": 0.8332188677262942
 }
 ```
 
 ### Train and val accuracy
 
-<img src="models/semantic-acc-0.8651-1547439696.png" height="400" alt="Train and val accuracy"/>
+<img src="models/semantic-acc-0.8691.png" height="400" alt="Train and val accuracy"/>
 
 ### Train and val loss
 
-<img src="models/semantic-loss-0.321-1547439696.png" height="400" alt="Train and val loss"/>
+<img src="models/semantic-loss-0.3163.png" height="400" alt="Train and val loss"/>
 
 ### Train and val f1 score
 
-<img src="models/semantic-f1-0.8222-1547439696.png" height="400" alt="Train and val f1 score"/>
+<img src="models/semantic-f1-0.8274.png" height="400" alt="Train and val f1 score"/>
 
 # Running code
 
 You need to create `Python 3.6` environment:
 ```
 conda env create -f environment.yml
+conda activate deep-learning
 ```
 
 
@@ -79,16 +80,26 @@ proejct_dir/dataset/quora_duplicate_questions.tsv
 
 You can install tensorflow-server-model as described in [this blog post](https://towardsdatascience.com/deploying-keras-models-using-tensorflow-serving-and-flask-508ba00f1037):
 
+You need to export saved Keras model*.h5* file into Tensorflow format
+You need to run this script:
+```
+cd scripts
+conda activate deep-learning
+python export_saved_model.py
+```
+
 Now you can start Flask app and tensorflow-server-model:
 
 ```
 cd scripts
+conda activate deep-learning
 python start-flask-and-tensorflow_model_server.py
 ```
 
 Now in anohter terminal window you can run this script for testing a question pair semantic similarity:
 ```
-cd scripts
+cd flask_server
+conda activate deep-learning
 python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 2 + 3 ?"
 ```
 
@@ -98,9 +109,62 @@ python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 2 + 3 ?"
 
 You can compute probabilities for [`Quora Question Pairs`](https://www.kaggle.com/c/quora-question-pairs#evaluation) test dataset using `Evaluating-on-test-data.ipynb` notebook.
 
+## Sample results
+The model can differentiate even very minor changes which causes big semantic meaning:
 ```
-saved_model_cli show --dir semantic_question_classifier/1 --all
+python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 2 + 3 ?"
+args {'question1': 'What is 2 + 3 ?', 'question2': 'What is 2 + 3 ?'}
+{
+  "predictions": [
+    [
+      0.779492
+    ]
+  ]
+}
 
-saved_model_cli run --dir semantic_question_classifier/1 --tag_set serve --signature_def serving_default --input_exp 'q1=np.random.rand(1,32, 300);q2=np.random.rand(1,32,300) '
+```
+
+Now changing variabls `2` and `3`, still model can predict questions as semantically duplicate:
+
+```
+python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 3 + 2 ?"
+args {'question1': 'What is 2 + 3 ?', 'question2': 'What is 3 + 2 ?'}
+{
+  "predictions": [
+    [
+      0.779492
+    ]
+  ]
+}
+
+```
+
+Now changing `+` to `*`, and now the model identifies questions as semantically `different` :
+
+```
+python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 3 * 2 ?"
+args {'question1': 'What is 2 + 3 ?', 'question2': 'What is 3 * 2 ?'}
+{
+  "predictions": [
+    [
+      0.0753584
+    ]
+  ]
+}
+
+```
+
+Similarly, changing `+` to `-`, and now the model identifies questions as semantically `
+
+```
+python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 3 - 2 ?"
+args {'question1': 'What is 2 + 3 ?', 'question2': 'What is 3 - 2 ?'}
+{
+  "predictions": [
+    [
+      0.136308
+    ]
+  ]
+}
 
 ```

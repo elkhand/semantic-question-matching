@@ -111,9 +111,7 @@ def get_word_embedding(word, w2v, config):
 
 def get_sequence_embedding(words, w2v, config):
     if len(words) <= config['max_seq_len']:
-        # Add padding
         x_seq = np.array([get_word_embedding(word, w2v, config) for word in words])
-        #x_seq = np.lib.pad(x_seq, ((0,config['max_seq_len'] - x_seq.shape[0]),(0,0)), 'constant')
     else:
         x_seq = []
         for i in range(config['max_seq_len']):
