@@ -68,7 +68,7 @@ conda activate deep-learning
 ```
 
 
-Now you can run these commadns below to download the word embeddings file and dataset:
+Now you can run these commands below to download the word embeddings file and dataset:
 ```
 cd scripts
 ./download_files.sh
@@ -126,7 +126,7 @@ args {'question1': 'What is 2 + 3 ?', 'question2': 'What is 2 + 3 ?'}
 
 ```
 
-Now changing variabls `2` and `3`, still model can predict questions as semantically duplicate:
+Now changing variables `2` and `3`, still model can predict questions as semantically duplicate:
 
 ```
 python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 3 + 2 ?"
@@ -156,7 +156,7 @@ args {'question1': 'What is 2 + 3 ?', 'question2': 'What is 3 * 2 ?'}
 
 ```
 
-Similarly, changing `+` to `-`, and now the model identifies questions as semantically `
+Similarly, changing `+` to `-`, and now the model identifies questions as semantically `different`
 
 ```
 python flask_sample_request.py -q1="What is 2 + 3 ?" -q2="What is 3 - 2 ?"
