@@ -8,7 +8,9 @@ There was also [Kaggle competition](https://www.kaggle.com/c/quora-question-pair
 ## Dataset
 
 You can download data from: http://qim.fs.quoracdn.net/quora_duplicate_questions.tsv 
+
 Dataset info: https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs 
+
 Test data: https://www.kaggle.com/c/quora-question-pairs/download/test.csv 
 
 ## Word embedding
